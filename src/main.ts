@@ -8,7 +8,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ParticleSystem } from './particleSystem';
 import { generateFirework, ALL_SHELL_TYPES, SHELL_SIZES as SHELL_SIZE_DATA } from './firework';
 import type { ShellTypeName } from './firework';
-import { initAudio, playLaunch, playBurst, updateListener } from './audio';
+import { initAudio, playLaunch, playBurst, updateListener, toggleMute } from './audio';
 
 // --- Scene Setup ---
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -270,6 +270,8 @@ function updateFlyingCamera(dt: number) {
   camera.lookAt(_currentLookAt);
 }
 
+// --- Button Icons (inline SVG) ---
+
 const flyBtn = document.getElementById('fly-btn')!;
 flyBtn.addEventListener('click', (e) => {
   e.stopPropagation();
@@ -281,6 +283,29 @@ flyBtn.addEventListener('click', (e) => {
   }
   // Ignore clicks during transitions
 });
+
+function createSvgIcon(paths: string): SVGSVGElement {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('width', '22');
+  svg.setAttribute('height', '22');
+  svg.innerHTML = paths;
+  return svg;
+}
+
+const ICON_SOUND_PATHS = '<path d="M3 9v6h4l5 5V4L7 9H3z" fill="white"/><path d="M16.5 12A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4z" fill="white"/><path d="M19 12c0-3-1.7-5.6-4-7v2a7 7 0 0 1 0 10v2c2.3-1.4 4-4 4-7z" fill="white"/>';
+const ICON_MUTED_PATHS = '<path d="M3 9v6h4l5 5V4L7 9H3z" fill="white"/><path d="M17 9l6 6" stroke="white" stroke-width="2"/><path d="M23 9l-6 6" stroke="white" stroke-width="2"/>';
+
+const muteBtn = document.getElementById('mute-btn')!;
+muteBtn.appendChild(createSvgIcon(ICON_SOUND_PATHS));
+
+muteBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  initAudio();
+  const muted = toggleMute();
+  muteBtn.replaceChildren(createSvgIcon(muted ? ICON_MUTED_PATHS : ICON_SOUND_PATHS));
+});
+
 
 // --- Animation Loop ---
 const clock = new THREE.Clock();

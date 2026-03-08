@@ -475,6 +475,14 @@ export function playLaunch(
   playAscending(x, z, size, fuseTime, delay);
 }
 
+let muted = false;
+
+export function toggleMute(): boolean {
+  muted = !muted;
+  if (masterGain) masterGain.gain.value = muted ? 0 : 2.0;
+  return muted;
+}
+
 export function updateListener(px: number, py: number, pz: number, fx: number, fy: number, fz: number) {
   if (!ctx) return;
   const L = ctx.listener;
