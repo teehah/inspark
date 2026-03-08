@@ -115,7 +115,7 @@ function dist(x: number, y: number, z: number, lx: number, ly: number, lz: numbe
 
 function panner(c: AudioContext, x: number, y: number, z: number): PannerNode {
   const p = c.createPanner();
-  p.panningModel = 'equalpower';
+  p.panningModel = 'HRTF';
   p.distanceModel = 'inverse';
   p.refDistance = 50;
   p.maxDistance = 5000;
@@ -218,16 +218,7 @@ function playThump(x: number, z: number, size: number, delay: number) {
   const t0 = c.currentTime + delay;
   const s = size / 6;
 
-  // Panner with gentle rolloff (launch thumps carry far IRL)
-  const p = c.createPanner();
-  p.panningModel = 'equalpower';
-  p.distanceModel = 'inverse';
-  p.refDistance = 100;
-  p.maxDistance = 5000;
-  p.rolloffFactor = 0.2;
-  p.positionX.value = x;
-  p.positionY.value = 0;
-  p.positionZ.value = z;
+  const p = panner(c, x, 0, z);
 
   // --- Layer 1: distorted sine "bon" (mortar thump) ---
   const osc = c.createOscillator();
