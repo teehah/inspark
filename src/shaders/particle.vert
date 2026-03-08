@@ -6,11 +6,17 @@ attribute float aBirthTime;
 attribute float aLifespan;
 attribute float aDragCoeff;
 attribute vec3 aColor;
+attribute vec3 aColor2;
 attribute float aSize;
+attribute float aFlicker;
+attribute float aRandom;
 
 varying float vAge;
 varying float vLifespan;
 varying vec3 vColor;
+varying vec3 vColor2;
+varying float vFlicker;
+varying float vRandom;
 
 void main() {
   float t = uTime - aBirthTime;
@@ -25,6 +31,9 @@ void main() {
   vAge = t;
   vLifespan = aLifespan;
   vColor = aColor;
+  vColor2 = aColor2;
+  vFlicker = aFlicker;
+  vRandom = aRandom;
 
   // Physics: exponential drag approximation
   vec3 gravity = vec3(0.0, -9.81, 0.0);
@@ -32,10 +41,8 @@ void main() {
 
   float k = aDragCoeff;
   if (k < 0.001) {
-    // No drag: simple ballistic
     pos = position + aVelocity * t + 0.5 * gravity * t * t;
   } else {
-    // Drag-decayed velocity + gravity
     float expKt = exp(-k * t);
     pos = position
         + (aVelocity / k) * (1.0 - expKt)
@@ -44,9 +51,9 @@ void main() {
 
   vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
 
-  // Size attenuation: larger when closer
+  // Size attenuation
   float lifeRatio = t / aLifespan;
-  float sizeFade = 1.0 - lifeRatio * lifeRatio; // quadratic fade
+  float sizeFade = 1.0 - lifeRatio * lifeRatio;
   gl_PointSize = aSize * sizeFade * uPixelRatio * (300.0 / -mvPosition.z);
 
   gl_Position = projectionMatrix * mvPosition;

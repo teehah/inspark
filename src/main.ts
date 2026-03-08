@@ -6,8 +6,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ParticleSystem } from './particleSystem';
-import { generateFirework, COLORS } from './firework';
-import type { BurstPattern } from './firework';
+import { generateFirework, ALL_SHELL_TYPES } from './firework';
 
 // --- Scene Setup ---
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -43,7 +42,7 @@ const bloomPass = new UnrealBloomPass(
 composer.addPass(bloomPass);
 composer.addPass(new OutputPass());
 
-// --- Ground reference (subtle grid for spatial orientation) ---
+// --- Ground reference ---
 const groundGeo = new THREE.PlaneGeometry(2000, 2000);
 const groundMat = new THREE.MeshBasicMaterial({
   color: 0x111122,
@@ -59,20 +58,18 @@ const particles = new ParticleSystem();
 scene.add(particles.points);
 
 // --- Firework Launcher ---
-const PATTERNS: BurstPattern[] = ['peony', 'chrysanthemum', 'willow', 'crossette', 'multibreak'];
-const SHELL_SIZES = [3, 4, 5, 6, 8];
+const SHELL_SIZES = [3, 4, 5, 6, 8, 10, 12];
 
 let simTime = 0;
 let nextLaunchTime = 0.5;
 
 function launchRandomFirework() {
-  const pattern = PATTERNS[Math.floor(Math.random() * PATTERNS.length)];
+  const shellType = ALL_SHELL_TYPES[Math.floor(Math.random() * ALL_SHELL_TYPES.length)];
   const size = SHELL_SIZES[Math.floor(Math.random() * SHELL_SIZES.length)];
-  const color = COLORS[Math.floor(Math.random() * COLORS.length)];
   const x = (Math.random() - 0.5) * 200;
   const z = (Math.random() - 0.5) * 100;
 
-  const data = generateFirework(pattern, size, x, z, simTime, color);
+  const data = generateFirework(shellType, size, x, z, simTime);
   particles.addFirework(data);
 }
 
@@ -82,13 +79,12 @@ const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
 
-  const dt = Math.min(clock.getDelta(), 0.033); // clamp to ~30fps min
+  const dt = Math.min(clock.getDelta(), 0.033);
   simTime += dt;
 
-  // Launch fireworks at intervals
   if (simTime >= nextLaunchTime) {
     launchRandomFirework();
-    nextLaunchTime = simTime + 0.8 + Math.random() * 2.0; // 0.8-2.8s between launches
+    nextLaunchTime = simTime + 0.8 + Math.random() * 2.0;
   }
 
   particles.update(simTime);

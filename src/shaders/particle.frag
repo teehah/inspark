@@ -1,6 +1,9 @@
 varying float vAge;
 varying float vLifespan;
 varying vec3 vColor;
+varying vec3 vColor2;
+varying float vFlicker;
+varying float vRandom;
 
 void main() {
   // Circular point sprite
@@ -9,34 +12,44 @@ void main() {
 
   float lifeRatio = vAge / vLifespan;
 
-  // Color transition: white flash -> main color -> orange -> dim red -> out
+  // Color transition: relatively abrupt layer-change, not smooth blend
+  // Real stars: constant color within each phase, brief transition between layers
+  vec3 mainColor;
+  float transitionPoint = 0.45 + vRandom * 0.1; // slight variation per star
+  float transitionWidth = 0.05; // narrow transition band
+  float colorMix = smoothstep(transitionPoint - transitionWidth, transitionPoint + transitionWidth, lifeRatio);
+  mainColor = mix(vColor, vColor2, colorMix);
+
+  // Brightness profile: white flash -> constant bright color -> brief dim -> extinction
   vec3 white = vec3(1.0, 0.95, 0.8);
-  vec3 orange = vec3(1.0, 0.4, 0.05);
-  vec3 dimRed = vec3(0.3, 0.05, 0.0);
+  vec3 dimEmber = vec3(0.4, 0.12, 0.02);
 
   vec3 color;
-  if (lifeRatio < 0.05) {
-    // Initial white flash
-    color = mix(white * 6.0, vColor * 5.0, lifeRatio / 0.05);
-  } else if (lifeRatio < 0.6) {
-    // Main color burn (HDR)
-    float fade = (lifeRatio - 0.05) / 0.55;
-    color = vColor * mix(5.0, 2.0, fade);
+  float brightness;
+
+  if (lifeRatio < 0.03) {
+    // Brief ignition flash (prime layer)
+    float flash = lifeRatio / 0.03;
+    color = mix(white * 6.0, mainColor, flash);
+    brightness = mix(6.0, 4.5, flash);
   } else if (lifeRatio < 0.85) {
-    // Fade to orange
-    float fade = (lifeRatio - 0.6) / 0.25;
-    color = mix(vColor * 2.0, orange * 1.5, fade);
+    // Main burn: relatively constant brightness (real stars are steady)
+    color = mainColor;
+    brightness = mix(4.5, 3.5, (lifeRatio - 0.03) / 0.82); // very gentle decline
   } else {
-    // Dim red ember
-    float fade = (lifeRatio - 0.85) / 0.15;
-    color = mix(orange * 1.5, dimRed, fade);
+    // End of burn: brief dim phase before extinction
+    float endFade = (lifeRatio - 0.85) / 0.15;
+    color = mix(mainColor, dimEmber, endFade * endFade);
+    brightness = mix(3.5, 0.3, endFade);
   }
 
-  // Soft edge
+  color *= brightness;
+
+  // Soft edge glow
   float alpha = 1.0 - smoothstep(0.3, 0.5, dist);
 
-  // Overall fade near end of life
-  float lifeFade = 1.0 - smoothstep(0.7, 1.0, lifeRatio);
+  // Extinction fade (last 15% of life)
+  float lifeFade = 1.0 - smoothstep(0.85, 1.0, lifeRatio);
   alpha *= lifeFade;
 
   gl_FragColor = vec4(color * alpha, alpha);
