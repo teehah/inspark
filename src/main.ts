@@ -405,7 +405,6 @@ const SHELL_LABELS: Record<ShellTypeName, string> = {
 
 const jogDial = document.getElementById('jog-dial')!;
 const launchBtn = document.getElementById('launch-btn')!;
-const ITEM_H = 40;
 let selectedIndex = 0;
 let dialOpen = false;
 
