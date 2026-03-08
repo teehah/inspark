@@ -17,37 +17,41 @@ body {
 
 #jog-dial {
   position: fixed;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 120px;
-  height: 200px;
-  overflow-y: scroll;
-  overflow-x: hidden;
-  scroll-snap-type: y mandatory;
+  bottom: 80px;
+  left: 0;
+  width: 100%;
+  height: 44px;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   z-index: 10;
   user-select: none;
   -webkit-user-select: none;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
   scrollbar-width: none;
   -webkit-mask-image: linear-gradient(
-    to bottom,
+    to right,
     transparent 0%,
-    black 20%,
-    black 80%,
+    black 15%,
+    black 85%,
     transparent 100%
   );
   mask-image: linear-gradient(
-    to bottom,
+    to right,
     transparent 0%,
-    black 20%,
-    black 80%,
+    black 15%,
+    black 85%,
     transparent 100%
   );
+  transition: opacity 0.25s, transform 0.25s;
+}
+
+#jog-dial.hidden {
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
 }
 
 #jog-dial::-webkit-scrollbar {
@@ -55,7 +59,9 @@ body {
 }
 
 .jog-item {
-  height: 40px;
+  flex-shrink: 0;
+  padding: 0 16px;
+  height: 36px;
   scroll-snap-align: center;
   display: flex;
   align-items: center;
@@ -73,9 +79,9 @@ body {
 }
 
 .jog-spacer {
-  height: 80px;
-  scroll-snap-align: none;
   flex-shrink: 0;
+  width: 50vw;
+  scroll-snap-align: none;
 }
 
 #markers {
@@ -133,18 +139,23 @@ body {
   pointer-events: none;
 }
 
-#fly-btn {
+#bottom-bar {
   position: fixed;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
+  display: flex;
+  gap: 12px;
+}
+
+#bottom-bar button {
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: #fff;
   font-size: 16px;
   font-weight: bold;
-  padding: 10px 32px;
+  padding: 10px 28px;
   border-radius: 24px;
   cursor: pointer;
   backdrop-filter: blur(6px);
@@ -153,15 +164,20 @@ body {
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
 }
 
-#fly-btn:hover {
+#bottom-bar button:hover {
   background: rgba(255, 255, 255, 0.22);
   border-color: rgba(255, 255, 255, 0.5);
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
 }
 
-#fly-btn:active {
+#bottom-bar button:active {
   background: rgba(255, 200, 100, 0.3);
   border-color: rgba(255, 200, 100, 0.6);
+}
+
+#launch-btn.open {
+  background: rgba(255, 200, 100, 0.2);
+  border-color: rgba(255, 200, 100, 0.5);
 }
 
 #fly-btn.flying {

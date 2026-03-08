@@ -404,8 +404,21 @@ const SHELL_LABELS: Record<ShellTypeName, string> = {
 };
 
 const jogDial = document.getElementById('jog-dial')!;
+const launchBtn = document.getElementById('launch-btn')!;
 const ITEM_H = 40;
 let selectedIndex = 0;
+let dialOpen = false;
+
+function toggleDial(open?: boolean) {
+  dialOpen = open ?? !dialOpen;
+  jogDial.classList.toggle('hidden', !dialOpen);
+  launchBtn.classList.toggle('open', dialOpen);
+}
+
+launchBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  toggleDial();
+});
 
 // Top spacer so first item can center
 const topSpacer = document.createElement('div');
@@ -436,11 +449,11 @@ function updateSelection() {
 
 // Detect which item is centered after scroll
 jogDial.addEventListener('scroll', () => {
-  const containerCenter = jogDial.scrollTop + jogDial.clientHeight / 2;
+  const containerCenter = jogDial.scrollLeft + jogDial.clientWidth / 2;
   let closest = 0;
   let closestDist = Infinity;
   for (let i = 0; i < jogItems.length; i++) {
-    const itemCenter = jogItems[i].offsetTop + ITEM_H / 2;
+    const itemCenter = jogItems[i].offsetLeft + jogItems[i].offsetWidth / 2;
     const dist = Math.abs(itemCenter - containerCenter);
     if (dist < closestDist) {
       closestDist = dist;
@@ -469,6 +482,8 @@ function launchSelected() {
   if (flyState === 'flying') {
     lockedBurst = burst;
   }
+
+  toggleDial(false);
 }
 
 let launchAfterSnap = false;
@@ -483,7 +498,7 @@ jogDial.addEventListener('scrollend', () => {
 // --- Drag to scroll + tap to launch ---
 {
   let dragging = false;
-  let startY = 0;
+  let startX = 0;
   let startScroll = 0;
   let dragMoved = false;
   let tapTarget: HTMLElement | null = null;
@@ -491,8 +506,8 @@ jogDial.addEventListener('scrollend', () => {
   jogDial.addEventListener('pointerdown', (e) => {
     dragging = true;
     dragMoved = false;
-    startY = e.clientY;
-    startScroll = jogDial.scrollTop;
+    startX = e.clientX;
+    startScroll = jogDial.scrollLeft;
     tapTarget = e.target as HTMLElement;
     jogDial.setPointerCapture(e.pointerId);
     jogDial.style.scrollSnapType = 'none';
@@ -500,22 +515,22 @@ jogDial.addEventListener('scrollend', () => {
 
   jogDial.addEventListener('pointermove', (e) => {
     if (!dragging) return;
-    const dy = e.clientY - startY;
-    if (Math.abs(dy) > 3) dragMoved = true;
-    jogDial.scrollTop = startScroll - dy;
+    const dx = e.clientX - startX;
+    if (Math.abs(dx) > 3) dragMoved = true;
+    jogDial.scrollLeft = startScroll - dx;
   });
 
   jogDial.addEventListener('pointerup', () => {
     if (!dragging) return;
     dragging = false;
-    jogDial.style.scrollSnapType = 'y mandatory';
+    jogDial.style.scrollSnapType = 'x mandatory';
 
     if (!dragMoved) {
       // Tap on an item → launch immediately
       const item = tapTarget?.closest('.jog-item') as HTMLElement | null;
       if (item && item.dataset.index != null) {
         const i = Number(item.dataset.index);
-        item.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        item.scrollIntoView({ inline: 'center', behavior: 'smooth' });
         selectedIndex = i;
         updateSelection();
         launchSelected();
@@ -530,7 +545,7 @@ jogDial.addEventListener('scrollend', () => {
   jogDial.addEventListener('pointercancel', () => {
     dragging = false;
     tapTarget = null;
-    jogDial.style.scrollSnapType = 'y mandatory';
+    jogDial.style.scrollSnapType = 'x mandatory';
   });
 }
 
