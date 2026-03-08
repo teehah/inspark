@@ -484,31 +484,47 @@ launchBtn.addEventListener('click', (e) => {
   toggleDial();
 });
 
-// Top spacer so first item can center
-const topSpacer = document.createElement('div');
-topSpacer.className = 'jog-spacer';
-jogDial.appendChild(topSpacer);
-
-// Create items
+// Create items: 3 copies for infinite loop
+const ITEM_COUNT = ALL_SHELL_TYPES.length;
+const COPIES = 3;
 const jogItems: HTMLDivElement[] = [];
-for (let i = 0; i < ALL_SHELL_TYPES.length; i++) {
-  const el = document.createElement('div');
-  el.className = 'jog-item';
-  el.textContent = SHELL_LABELS[ALL_SHELL_TYPES[i]];
-  el.dataset.index = String(i);
-  jogDial.appendChild(el);
-  jogItems.push(el);
+
+// Leading spacer
+const leadSpacer = document.createElement('div');
+leadSpacer.className = 'jog-spacer';
+jogDial.appendChild(leadSpacer);
+
+for (let copy = 0; copy < COPIES; copy++) {
+  for (let i = 0; i < ITEM_COUNT; i++) {
+    const el = document.createElement('div');
+    el.className = 'jog-item';
+    el.textContent = SHELL_LABELS[ALL_SHELL_TYPES[i]];
+    el.dataset.index = String(i);
+    el.dataset.copy = String(copy);
+    jogDial.appendChild(el);
+    jogItems.push(el);
+  }
 }
 
-// Bottom spacer so last item can center
-const bottomSpacer = document.createElement('div');
-bottomSpacer.className = 'jog-spacer';
-jogDial.appendChild(bottomSpacer);
+// Trailing spacer
+const trailSpacer = document.createElement('div');
+trailSpacer.className = 'jog-spacer';
+jogDial.appendChild(trailSpacer);
 
 function updateSelection() {
-  jogItems.forEach((el, i) => {
-    el.classList.toggle('selected', i === selectedIndex);
+  const real = selectedIndex % ITEM_COUNT;
+  jogItems.forEach((el) => {
+    el.classList.toggle('selected', Number(el.dataset.index) === real);
   });
+}
+
+// Scroll to middle copy on init
+function scrollToMiddleCopy(realIndex: number) {
+  const midStart = ITEM_COUNT; // middle copy starts at index ITEM_COUNT
+  const target = jogItems[midStart + realIndex];
+  jogDial.style.scrollSnapType = 'none';
+  target.scrollIntoView({ inline: 'center', behavior: 'instant' as ScrollBehavior });
+  requestAnimationFrame(() => { jogDial.style.scrollSnapType = 'x mandatory'; });
 }
 
 // Detect which item is centered after scroll
@@ -531,9 +547,11 @@ jogDial.addEventListener('scroll', () => {
 });
 
 updateSelection();
+// Start at middle copy
+requestAnimationFrame(() => scrollToMiddleCopy(0));
 
 function launchSelected() {
-  const type = ALL_SHELL_TYPES[selectedIndex];
+  const type = ALL_SHELL_TYPES[selectedIndex % ITEM_COUNT];
   const size = 12;
   const shell = SHELL_SIZE_DATA[size] || SHELL_SIZE_DATA[6];
   const data = generateFirework(type, size, 0, 0, simTime);
@@ -541,7 +559,7 @@ function launchSelected() {
   trackBurst(0, shell.height, 0, simTime, simTime + shell.fuseTime, 4, type, size);
   playLaunch(0, 0, size, shell.fuseTime, camera.position.x, camera.position.y, camera.position.z);
   const burst = activeBursts[activeBursts.length - 1];
-  addMarker(SHELL_LABELS[type], burst);
+  addMarker(SHELL_LABELS[type as ShellTypeName], burst);
 
   // Flying中はすぐにロックオン
   if (flyState === 'flying') {
@@ -557,6 +575,13 @@ jogDial.addEventListener('scrollend', () => {
   if (launchAfterSnap) {
     launchAfterSnap = false;
     launchSelected();
+  }
+  // Infinite loop: if in first or last copy, jump to middle copy
+  const real = selectedIndex % ITEM_COUNT;
+  const copy = Math.floor(selectedIndex / ITEM_COUNT);
+  if (copy !== 1) {
+    scrollToMiddleCopy(real);
+    selectedIndex = ITEM_COUNT + real;
   }
 });
 
