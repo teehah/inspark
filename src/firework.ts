@@ -20,13 +20,13 @@ function calcLaunchVelocity(height: number, fuseTime: number): number {
 }
 
 export const SHELL_SIZES: Record<number, ShellSize> = {
-  3:  { inches: 3,  height: 120, fuseTime: 3.0, launchVelocity: calcLaunchVelocity(120, 3.0), ejectVelocity: 30, starCount: 100 },
-  4:  { inches: 4,  height: 150, fuseTime: 3.5, launchVelocity: calcLaunchVelocity(150, 3.5), ejectVelocity: 33, starCount: 125 },
-  5:  { inches: 5,  height: 180, fuseTime: 4.0, launchVelocity: calcLaunchVelocity(180, 4.0), ejectVelocity: 35, starCount: 145 },
-  6:  { inches: 6,  height: 210, fuseTime: 5.0, launchVelocity: calcLaunchVelocity(210, 5.0), ejectVelocity: 38, starCount: 150 },
-  8:  { inches: 8,  height: 270, fuseTime: 6.0, launchVelocity: calcLaunchVelocity(270, 6.0), ejectVelocity: 42, starCount: 155 },
-  10: { inches: 10, height: 320, fuseTime: 6.5, launchVelocity: calcLaunchVelocity(320, 6.5), ejectVelocity: 45, starCount: 250 },
-  12: { inches: 12, height: 350, fuseTime: 7.0, launchVelocity: calcLaunchVelocity(350, 7.0), ejectVelocity: 48, starCount: 400 },
+  3:  { inches: 3,  height: 120, fuseTime: 3.0, launchVelocity: calcLaunchVelocity(120, 3.0), ejectVelocity: 30, starCount: 130 },
+  4:  { inches: 4,  height: 150, fuseTime: 3.5, launchVelocity: calcLaunchVelocity(150, 3.5), ejectVelocity: 33, starCount: 180 },
+  5:  { inches: 5,  height: 180, fuseTime: 4.0, launchVelocity: calcLaunchVelocity(180, 4.0), ejectVelocity: 35, starCount: 230 },
+  6:  { inches: 6,  height: 210, fuseTime: 5.0, launchVelocity: calcLaunchVelocity(210, 5.0), ejectVelocity: 38, starCount: 300 },
+  8:  { inches: 8,  height: 270, fuseTime: 6.0, launchVelocity: calcLaunchVelocity(270, 6.0), ejectVelocity: 42, starCount: 400 },
+  10: { inches: 10, height: 320, fuseTime: 6.5, launchVelocity: calcLaunchVelocity(320, 6.5), ejectVelocity: 45, starCount: 550 },
+  12: { inches: 12, height: 350, fuseTime: 7.0, launchVelocity: calcLaunchVelocity(350, 7.0), ejectVelocity: 48, starCount: 800 },
 };
 
 // --- Colors (normalized, will be scaled to HDR in shader) ---
@@ -61,19 +61,19 @@ interface StarType {
 
 const STAR_TYPES = {
   // 牡丹 (Botan) - no trail, clean color points
-  botan: { burnTime: 2.0, drag: 0.2, trailEchoes: 0, trailInterval: 0, pointSize: 2.2, flicker: 0 },
+  botan: { burnTime: 1.2, drag: 0.2, trailEchoes: 0, trailInterval: 0, pointSize: 2.2, flicker: 0 },
   // 菊 (Kiku) - comet tail, visible trails
-  kiku: { burnTime: 3.0, drag: 0.4, trailEchoes: 6, trailInterval: 0.01, pointSize: 2.5, flicker: 0 },
-  // 柳 (Yanagi) - very long burn, heavy droop
-  yanagi: { burnTime: 8.0, drag: 0.8, trailEchoes: 8, trailInterval: 0.012, pointSize: 1.8, flicker: 0 },
+  kiku: { burnTime: 1.8, drag: 0.4, trailEchoes: 6, trailInterval: 0.01, pointSize: 2.5, flicker: 0 },
+  // 柳 (Yanagi) - very long burn, heavy droop (supposed to reach low)
+  yanagi: { burnTime: 5.0, drag: 0.8, trailEchoes: 8, trailInterval: 0.012, pointSize: 1.8, flicker: 0 },
   // 冠 (Kamuro) - long burn, dense glitter trail
-  kamuro: { burnTime: 6.0, drag: 0.6, trailEchoes: 8, trailInterval: 0.01, pointSize: 2.0, flicker: 0.8 },
+  kamuro: { burnTime: 3.5, drag: 0.6, trailEchoes: 8, trailInterval: 0.01, pointSize: 2.0, flicker: 0.8 },
   // 錦 (Nishiki/Brocade) - dim star body, bright trail
-  nishiki: { burnTime: 5.0, drag: 0.5, trailEchoes: 8, trailInterval: 0.01, pointSize: 1.2, flicker: 0.6 },
+  nishiki: { burnTime: 3.0, drag: 0.5, trailEchoes: 8, trailInterval: 0.01, pointSize: 1.2, flicker: 0.6 },
   // Crossette - splits into 4 after delay
-  crossette: { burnTime: 2.5, drag: 0.3, trailEchoes: 4, trailInterval: 0.01, pointSize: 2.2, flicker: 0 },
+  crossette: { burnTime: 1.5, drag: 0.3, trailEchoes: 4, trailInterval: 0.01, pointSize: 2.2, flicker: 0 },
   // Dahlia - fewer, larger, bolder stars
-  dahlia: { burnTime: 3.5, drag: 0.25, trailEchoes: 4, trailInterval: 0.01, pointSize: 3.5, flicker: 0 },
+  dahlia: { burnTime: 2.0, drag: 0.25, trailEchoes: 4, trailInterval: 0.01, pointSize: 3.5, flicker: 0 },
 } as const satisfies Record<string, StarType>;
 
 // --- Shell type: defines internal structure ---
@@ -263,9 +263,10 @@ function posAtTime(
     return [start[0] + vel[0] * t, start[1] + vel[1] * t + 0.5 * g * t * t, start[2] + vel[2] * t];
   }
   const e = Math.exp(-k * t);
+  const gravTerm = g * (t / k - (1 - e) / (k * k));
   return [
     start[0] + (vel[0] / k) * (1 - e),
-    start[1] + (vel[1] / k) * (1 - e) + 0.5 * g * t * t,
+    start[1] + (vel[1] / k) * (1 - e) + gravTerm,
     start[2] + (vel[2] / k) * (1 - e),
   ];
 }
@@ -359,20 +360,41 @@ class ParticleBuilder {
 
 // --- Burst generators ---
 
+const EMBER_COLOR: FireworkColor = { name: 'ember', r: 1.0, g: 0.4, b: 0.05 };
+
 function emitSphericalBurst(
   b: ParticleBuilder, star: StarType,
   cx: number, cy: number, cz: number,
   burstTime: number, ejectSpeed: number, count: number,
   c1: FireworkColor, c2: FireworkColor,
+  sparks = true,
 ) {
   for (let i = 0; i < count; i++) {
     const [dx, dy, dz] = randomOnSphere();
     const sv = 0.8 + Math.random() * 0.4;
     const lv = 0.8 + Math.random() * 0.4;
-    b.addWithTrail(cx, cy, cz,
-      dx * ejectSpeed * sv, dy * ejectSpeed * sv, dz * ejectSpeed * sv,
-      burstTime, star.burnTime * lv, star.drag,
-      c1, c2, star.pointSize, star);
+    const vx = dx * ejectSpeed * sv;
+    const vy = dy * ejectSpeed * sv;
+    const vz = dz * ejectSpeed * sv;
+    const life = star.burnTime * lv;
+    b.addWithTrail(cx, cy, cz, vx, vy, vz,
+      burstTime, life, star.drag, c1, c2, star.pointSize, star);
+
+    // End-of-life sparks: ~30% of stars emit 2-4 tiny sparks
+    if (sparks && Math.random() < 0.3) {
+      const sparkTime = burstTime + life * (0.85 + Math.random() * 0.1);
+      const dt = sparkTime - burstTime;
+      const sp = posAtTime([cx, cy, cz], [vx, vy, vz], star.drag, dt);
+      const sparkCount = 2 + Math.floor(Math.random() * 3);
+      for (let s = 0; s < sparkCount; s++) {
+        const [sx, sy, sz] = randomOnSphere();
+        const sparkSpeed = 3 + Math.random() * 5;
+        b.add(sp[0], sp[1], sp[2],
+          sx * sparkSpeed, sy * sparkSpeed - 2, sz * sparkSpeed,
+          sparkTime, 0.2 + Math.random() * 0.3, 0.5,
+          EMBER_COLOR, EMBER_COLOR, 1.0 + Math.random() * 0.5);
+      }
+    }
   }
 }
 
@@ -481,6 +503,9 @@ export function generateFirework(
   if (type.breakCount && type.breakCount > 1) {
     maxParticles += baseCount * trailMult * (type.breakCount - 1);
   }
+
+  // End-of-life sparks: ~30% of stars × ~3 sparks each
+  maxParticles += Math.round(baseCount * 0.3 * 3);
 
   const b = new ParticleBuilder(maxParticles + 100);
 
