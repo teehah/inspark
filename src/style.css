@@ -160,6 +160,7 @@ body {
   cursor: pointer;
   backdrop-filter: blur(6px);
   letter-spacing: 0.1em;
+  white-space: nowrap;
   transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
 }

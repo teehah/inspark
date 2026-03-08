@@ -280,12 +280,22 @@ flyBtn.addEventListener('click', (e) => {
 
 // --- Animation Loop ---
 const clock = new THREE.Clock();
+let frameCount = 0;
+let fpsTime = 0;
+let fps = 0;
 
 function animate() {
   requestAnimationFrame(animate);
 
   const dt = Math.min(clock.getDelta(), 0.033);
   simTime += dt;
+  frameCount++;
+  fpsTime += dt;
+  if (fpsTime >= 0.5) {
+    fps = Math.round(frameCount / fpsTime);
+    frameCount = 0;
+    fpsTime = 0;
+  }
 
   if (simTime >= nextLaunchTime) {
     launchRandomFirework();
@@ -311,7 +321,7 @@ function animate() {
 
   composer.render();
   updateMarkers();
-  counterEl.textContent = `${particles.particleCount.toLocaleString()} / ${particles.maxParticles.toLocaleString()}`;
+  counterEl.textContent = `${particles.particleCount.toLocaleString()} / ${particles.maxParticles.toLocaleString()} | ${fps} fps`;
 }
 
 // --- Resize Handler ---
