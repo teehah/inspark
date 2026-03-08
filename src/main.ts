@@ -24,10 +24,10 @@ scene.fog = new THREE.FogExp2(skyColor, 0.0015);
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000);
 camera.position.set(0, 1.5, 300);
-camera.lookAt(0, 1.5, 0);
+camera.lookAt(0, 150, 0);
 
 const controls = new OrbitControls(camera, canvas);
-controls.target.set(0, 1.5, 0);
+controls.target.set(0, 150, 0);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.maxDistance = 800;
@@ -135,7 +135,7 @@ const _transLookFrom = new THREE.Vector3();
 const _transLookTo = new THREE.Vector3();
 
 const HOME_POS = new THREE.Vector3(0, 1.5, 300);
-const HOME_TARGET = new THREE.Vector3(0, 180, 0);
+const HOME_TARGET = new THREE.Vector3(0, 150, 0);
 
 // Looping path through the firework burst zone
 const FLIGHT_WAYPOINTS = [
@@ -203,7 +203,7 @@ function startTakeoff() {
   _transLookFrom.copy(controls.target);
   _transLookTo.set(0, 220, 0);
   _currentLookAt.copy(controls.target);
-  flyBtn.textContent = '戻る';
+  flyBtn.textContent = '着陸';
   flyBtn.classList.add('flying');
 }
 
@@ -231,7 +231,7 @@ function enterIdle() {
   controls.target.copy(HOME_TARGET);
   camera.lookAt(HOME_TARGET);
   controls.enabled = true;
-  flyBtn.textContent = '飛ぶ';
+  flyBtn.textContent = '飛行';
   flyBtn.classList.remove('flying');
 }
 
@@ -275,7 +275,7 @@ flyBtn.addEventListener('click', (e) => {
   } else if (flyState === 'flying') {
     startLanding();
   }
-  // Ignore clicks during takeoff/landing transitions
+  // Ignore clicks during transitions
 });
 
 // --- Animation Loop ---
