@@ -31,3 +31,7 @@ npm run dev
 - Three.js (WebGL)
 - Vite
 - TypeScript
+
+## クレジット
+
+- 月テクスチャ: NASA/GSFC/Arizona State University (LRO WAC) — Public Domain
