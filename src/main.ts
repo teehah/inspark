@@ -119,7 +119,7 @@ function launchRandomFirework() {
 
   const shell = SHELL_SIZE_DATA[size] || SHELL_SIZE_DATA[6];
   trackBurst(x, shell.height, z, simTime, simTime + shell.fuseTime, 4, shellType, size);
-  playLaunch(x, z, size, camera.position.x, camera.position.y, camera.position.z);
+  playLaunch(x, z, size, shell.fuseTime, camera.position.x, camera.position.y, camera.position.z);
 }
 
 // --- Flying Camera ---
@@ -504,7 +504,7 @@ function launchSelected() {
   const data = generateFirework(type, size, 0, 0, simTime);
   particles.addFirework(data);
   trackBurst(0, shell.height, 0, simTime, simTime + shell.fuseTime, 4, type, size);
-  playLaunch(0, 0, size, camera.position.x, camera.position.y, camera.position.z);
+  playLaunch(0, 0, size, shell.fuseTime, camera.position.x, camera.position.y, camera.position.z);
   const burst = activeBursts[activeBursts.length - 1];
   addMarker(SHELL_LABELS[type], burst);
 
@@ -582,9 +582,17 @@ jogDial.addEventListener('scrollend', () => {
 // --- Particle Counter ---
 const counterEl = document.getElementById('particle-counter')!;
 
+// --- Init audio on first user gesture ---
+function initOnGesture() {
+  initAudio();
+  document.removeEventListener('click', initOnGesture);
+  document.removeEventListener('touchstart', initOnGesture);
+}
+document.addEventListener('click', initOnGesture);
+document.addEventListener('touchstart', initOnGesture);
+
 // --- Click canvas to launch random ---
 canvas.addEventListener('click', () => {
-  initAudio();
   launchRandomFirework();
 });
 
