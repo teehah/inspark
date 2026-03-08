@@ -1,5 +1,5 @@
 {
-  "name": "inspark-temp",
+  "name": "inspark",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -16,7 +16,6 @@
     "vite": "^7.3.1"
   },
   "dependencies": {
-    "postprocessing": "^6.38.3",
     "three": "^0.183.2"
   }
 }
