@@ -46,7 +46,7 @@ void main() {
     float expKt = exp(-k * t);
     pos = position
         + (aVelocity / k) * (1.0 - expKt)
-        + 0.5 * gravity * t * t;
+        + gravity * (t / k - (1.0 - expKt) / (k * k));
   }
 
   vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);

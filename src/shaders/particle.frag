@@ -43,10 +43,20 @@ void main() {
     brightness = mix(3.5, 0.3, endFade);
   }
 
+  // Glitter: rapid pseudo-random twinkling for kamuro/nishiki stars
+  if (vFlicker > 0.0) {
+    float rate = 15.0 + vRandom * 25.0; // 15-40 Hz per particle
+    float h = fract(sin(floor(vAge * rate) + vRandom * 1000.0) * 43758.5453);
+    float glitter = step(0.55 - vFlicker * 0.35, h);
+    brightness *= mix(0.05, 1.0, glitter);
+  }
+
   color *= brightness;
 
-  // Soft edge glow
-  float alpha = 1.0 - smoothstep(0.3, 0.5, dist);
+  // Hot core + soft glow (feeds bloom)
+  float core = exp(-dist * dist * 18.0);
+  float glow = exp(-dist * dist * 4.0) * 0.3;
+  float alpha = core + glow;
 
   // Extinction fade (last 15% of life)
   float lifeFade = 1.0 - smoothstep(0.85, 1.0, lifeRatio);

@@ -56,23 +56,24 @@ interface StarType {
   trailEchoes: number;  // number of trail echo particles (0 = no trail, like botan)
   trailInterval: number; // seconds between echoes
   pointSize: number;    // render size
+  flicker: number;      // glitter intensity (0 = none, 1 = max)
 }
 
 const STAR_TYPES = {
   // 牡丹 (Botan) - no trail, clean color points
-  botan: { burnTime: 2.0, drag: 0.2, trailEchoes: 0, trailInterval: 0, pointSize: 2.2 },
+  botan: { burnTime: 2.0, drag: 0.2, trailEchoes: 0, trailInterval: 0, pointSize: 2.2, flicker: 0 },
   // 菊 (Kiku) - comet tail, visible trails
-  kiku: { burnTime: 3.0, drag: 0.4, trailEchoes: 6, trailInterval: 0.01, pointSize: 2.5 },
+  kiku: { burnTime: 3.0, drag: 0.4, trailEchoes: 6, trailInterval: 0.01, pointSize: 2.5, flicker: 0 },
   // 柳 (Yanagi) - very long burn, heavy droop
-  yanagi: { burnTime: 8.0, drag: 0.8, trailEchoes: 8, trailInterval: 0.012, pointSize: 1.8 },
+  yanagi: { burnTime: 8.0, drag: 0.8, trailEchoes: 8, trailInterval: 0.012, pointSize: 1.8, flicker: 0 },
   // 冠 (Kamuro) - long burn, dense glitter trail
-  kamuro: { burnTime: 6.0, drag: 0.6, trailEchoes: 8, trailInterval: 0.01, pointSize: 2.0 },
+  kamuro: { burnTime: 6.0, drag: 0.6, trailEchoes: 8, trailInterval: 0.01, pointSize: 2.0, flicker: 0.8 },
   // 錦 (Nishiki/Brocade) - dim star body, bright trail
-  nishiki: { burnTime: 5.0, drag: 0.5, trailEchoes: 8, trailInterval: 0.01, pointSize: 1.2 },
+  nishiki: { burnTime: 5.0, drag: 0.5, trailEchoes: 8, trailInterval: 0.01, pointSize: 1.2, flicker: 0.6 },
   // Crossette - splits into 4 after delay
-  crossette: { burnTime: 2.5, drag: 0.3, trailEchoes: 4, trailInterval: 0.01, pointSize: 2.2 },
+  crossette: { burnTime: 2.5, drag: 0.3, trailEchoes: 4, trailInterval: 0.01, pointSize: 2.2, flicker: 0 },
   // Dahlia - fewer, larger, bolder stars
-  dahlia: { burnTime: 3.5, drag: 0.25, trailEchoes: 4, trailInterval: 0.01, pointSize: 3.5 },
+  dahlia: { burnTime: 3.5, drag: 0.25, trailEchoes: 4, trailInterval: 0.01, pointSize: 3.5, flicker: 0 },
 } as const satisfies Record<string, StarType>;
 
 // --- Shell type: defines internal structure ---
@@ -302,7 +303,7 @@ class ParticleBuilder {
     vx: number, vy: number, vz: number,
     birth: number, life: number, drag: number,
     c1: FireworkColor, c2: FireworkColor,
-    size: number,
+    size: number, flickerVal = 0,
   ) {
     const i3 = this.idx * 3;
     this.positions[i3] = px; this.positions[i3 + 1] = py; this.positions[i3 + 2] = pz;
@@ -312,7 +313,7 @@ class ParticleBuilder {
     this.dragCoeffs[this.idx] = drag;
     this.colors[i3] = c1.r; this.colors[i3 + 1] = c1.g; this.colors[i3 + 2] = c1.b;
     this.colors2[i3] = c2.r; this.colors2[i3 + 1] = c2.g; this.colors2[i3 + 2] = c2.b;
-    this.flickers[this.idx] = 0;
+    this.flickers[this.idx] = flickerVal;
     this.randoms[this.idx] = Math.random();
     this.sizes[this.idx] = size;
     this.idx++;
@@ -325,7 +326,7 @@ class ParticleBuilder {
     c1: FireworkColor, c2: FireworkColor,
     size: number, star: StarType,
   ) {
-    this.add(px, py, pz, vx, vy, vz, birth, life, drag, c1, c2, size);
+    this.add(px, py, pz, vx, vy, vz, birth, life, drag, c1, c2, size, star.flicker);
     for (let t = 1; t <= star.trailEchoes; t++) {
       const frac = t / (star.trailEchoes + 1);
       const dimC1 = { ...c1, r: c1.r * (1 - frac * 0.5), g: c1.g * (1 - frac * 0.5), b: c1.b * (1 - frac * 0.5) };
@@ -334,7 +335,7 @@ class ParticleBuilder {
         birth + t * star.trailInterval,
         life - t * star.trailInterval,
         drag, dimC1, dimC2,
-        size * (1 - frac * 0.6));
+        size * (1 - frac * 0.6), star.flicker);
     }
   }
 
@@ -495,6 +496,7 @@ export function generateFirework(
     trailEchoes: ascTrailCount,
     trailInterval: 0.012,
     pointSize: ascPointSize,
+    flicker: 0,
   };
   const goldColor = colorByName('gold');
   b.addWithTrail(launchX, 0, launchZ, 0, shell.launchVelocity, 0,
