@@ -88,14 +88,25 @@ body {
   z-index: 5;
 }
 
-.marker {
-  position: absolute;
+.marker-label {
+  position: fixed;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
   color: #fff;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   white-space: nowrap;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+  animation: marker-blink 4s ease-out forwards;
+}
+
+.marker-arrow {
+  position: absolute;
+  color: rgba(255, 200, 100, 0.9);
+  font-size: 24px;
   transform: translate(-50%, -100%);
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+  text-shadow: 0 0 8px rgba(255, 200, 100, 0.5);
   animation: marker-blink 4s ease-out forwards;
 }
 
@@ -109,4 +120,52 @@ body {
   30%  { opacity: 1; }
   60%  { opacity: 0.6; }
   100% { opacity: 0; }
+}
+
+#particle-counter {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 11px;
+  font-family: monospace;
+  z-index: 10;
+  pointer-events: none;
+}
+
+#fly-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 10px 32px;
+  border-radius: 24px;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  letter-spacing: 0.1em;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
+}
+
+#fly-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+}
+
+#fly-btn:active {
+  background: rgba(255, 200, 100, 0.3);
+  border-color: rgba(255, 200, 100, 0.6);
+}
+
+#fly-btn.flying {
+  background: rgba(255, 200, 100, 0.2);
+  border-color: rgba(255, 200, 100, 0.5);
+  box-shadow: 0 0 16px rgba(255, 200, 100, 0.2);
 }

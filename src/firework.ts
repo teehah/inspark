@@ -19,7 +19,7 @@ function calcLaunchVelocity(height: number, fuseTime: number): number {
   return (height + 0.5 * 9.81 * fuseTime * fuseTime) / fuseTime;
 }
 
-const SHELL_SIZES: Record<number, ShellSize> = {
+export const SHELL_SIZES: Record<number, ShellSize> = {
   3:  { inches: 3,  height: 120, fuseTime: 3.0, launchVelocity: calcLaunchVelocity(120, 3.0), ejectVelocity: 30, starCount: 100 },
   4:  { inches: 4,  height: 150, fuseTime: 3.5, launchVelocity: calcLaunchVelocity(150, 3.5), ejectVelocity: 33, starCount: 125 },
   5:  { inches: 5,  height: 180, fuseTime: 4.0, launchVelocity: calcLaunchVelocity(180, 4.0), ejectVelocity: 35, starCount: 145 },
@@ -62,17 +62,17 @@ const STAR_TYPES = {
   // 牡丹 (Botan) - no trail, clean color points
   botan: { burnTime: 2.0, drag: 0.2, trailEchoes: 0, trailInterval: 0, pointSize: 2.2 },
   // 菊 (Kiku) - comet tail, visible trails
-  kiku: { burnTime: 3.0, drag: 0.4, trailEchoes: 3, trailInterval: 0.04, pointSize: 2.5 },
+  kiku: { burnTime: 3.0, drag: 0.4, trailEchoes: 6, trailInterval: 0.01, pointSize: 2.5 },
   // 柳 (Yanagi) - very long burn, heavy droop
-  yanagi: { burnTime: 8.0, drag: 0.8, trailEchoes: 4, trailInterval: 0.05, pointSize: 1.8 },
+  yanagi: { burnTime: 8.0, drag: 0.8, trailEchoes: 8, trailInterval: 0.012, pointSize: 1.8 },
   // 冠 (Kamuro) - long burn, dense glitter trail
-  kamuro: { burnTime: 6.0, drag: 0.6, trailEchoes: 5, trailInterval: 0.04, pointSize: 2.0 },
+  kamuro: { burnTime: 6.0, drag: 0.6, trailEchoes: 8, trailInterval: 0.01, pointSize: 2.0 },
   // 錦 (Nishiki/Brocade) - dim star body, bright trail
-  nishiki: { burnTime: 5.0, drag: 0.5, trailEchoes: 5, trailInterval: 0.04, pointSize: 1.2 },
+  nishiki: { burnTime: 5.0, drag: 0.5, trailEchoes: 8, trailInterval: 0.01, pointSize: 1.2 },
   // Crossette - splits into 4 after delay
-  crossette: { burnTime: 2.5, drag: 0.3, trailEchoes: 2, trailInterval: 0.04, pointSize: 2.2 },
+  crossette: { burnTime: 2.5, drag: 0.3, trailEchoes: 4, trailInterval: 0.01, pointSize: 2.2 },
   // Dahlia - fewer, larger, bolder stars
-  dahlia: { burnTime: 3.5, drag: 0.25, trailEchoes: 2, trailInterval: 0.04, pointSize: 3.5 },
+  dahlia: { burnTime: 3.5, drag: 0.25, trailEchoes: 4, trailInterval: 0.01, pointSize: 3.5 },
 } as const satisfies Record<string, StarType>;
 
 // --- Shell type: defines internal structure ---
@@ -493,7 +493,7 @@ export function generateFirework(
     burnTime: shell.fuseTime * ascBurnRatio,
     drag: 0,
     trailEchoes: ascTrailCount,
-    trailInterval: 0.05,
+    trailInterval: 0.012,
     pointSize: ascPointSize,
   };
   const goldColor = colorByName('gold');

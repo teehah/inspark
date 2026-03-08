@@ -23,6 +23,9 @@ export class ParticleSystem {
 
   private activeCount = 0;
 
+  get particleCount() { return this.activeCount; }
+  get maxParticles() { return MAX_PARTICLES; }
+
   constructor() {
     this.geometry = new THREE.BufferGeometry();
 

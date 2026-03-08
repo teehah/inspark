@@ -10,6 +10,8 @@
   },
   "devDependencies": {
     "@types/three": "^0.183.1",
+    "puppeteer": "^24.38.0",
+    "sharp": "^0.34.5",
     "typescript": "~5.9.3",
     "vite": "^7.3.1"
   },
