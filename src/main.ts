@@ -102,6 +102,11 @@ const SPECTACLE: Partial<Record<ShellTypeName, number>> = {
   palm: 1.4,
   dahlia: 1.3,
   multibreak: 2.0,
+  hachi: 1.6,
+  tobiyusei: 1.6,
+  katamono: 2.5,
+  tenmetu: 1.4,
+  kowari: 1.8,
 };
 
 function trackBurst(x: number, y: number, z: number, launchTime: number, burstTime: number, duration: number, shellType: ShellTypeName, size: number) {
@@ -455,6 +460,11 @@ const SHELL_LABELS: Record<ShellTypeName, string> = {
   palm: '椰子',
   dahlia: 'ダリア',
   multibreak: '段咲き',
+  hachi: '蜂',
+  tobiyusei: '飛遊星',
+  katamono: '型物',
+  tenmetu: '点滅',
+  kowari: '小割',
 };
 
 const jogDial = document.getElementById('jog-dial')!;

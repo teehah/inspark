@@ -43,12 +43,18 @@ void main() {
     brightness = mix(3.5, 0.3, endFade);
   }
 
-  // Glitter: rapid pseudo-random twinkling for kamuro/nishiki stars
+  // Glitter / Strobe effects
   if (vFlicker > 0.0) {
-    float rate = 15.0 + vRandom * 25.0; // 15-40 Hz per particle
+    // Random glitter for kamuro/nishiki stars
+    float rate = 15.0 + vRandom * 25.0;
     float h = fract(sin(floor(vAge * rate) + vRandom * 1000.0) * 43758.5453);
     float glitter = step(0.55 - vFlicker * 0.35, h);
     brightness *= mix(0.05, 1.0, glitter);
+  } else if (vFlicker < 0.0) {
+    // Regular strobe (tenmetu) — slow, dramatic on/off
+    float strobeRate = 1.5 + vRandom * 1.0; // 1.5-2.5 Hz
+    float strobe = step(0.4, fract(vAge * strobeRate));
+    brightness *= strobe; // fully off when strobe=0
   }
 
   color *= brightness;
