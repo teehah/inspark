@@ -292,7 +292,7 @@ function animate() {
   frameCount++;
   fpsTime += dt;
   if (fpsTime >= 0.5) {
-    fps = Math.round(frameCount / fpsTime);
+    fps = frameCount / fpsTime;
     frameCount = 0;
     fpsTime = 0;
   }
@@ -321,7 +321,7 @@ function animate() {
 
   composer.render();
   updateMarkers();
-  counterEl.textContent = `${particles.particleCount.toLocaleString()} / ${particles.maxParticles.toLocaleString()} | ${fps} fps`;
+  counterEl.textContent = `${particles.particleCount.toLocaleString()} / ${particles.maxParticles.toLocaleString()} | ${fps.toFixed(1)} fps`;
 }
 
 // --- Resize Handler ---
