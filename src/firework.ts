@@ -71,9 +71,15 @@ const STAR_TYPES = {
   // 錦 (Nishiki/Brocade) - dim star body, bright trail
   nishiki: { burnTime: 3.0, drag: 0.5, trailEchoes: 8, trailInterval: 0.01, pointSize: 1.2, flicker: 0.6 },
   // Crossette - splits into 4 after delay
-  crossette: { burnTime: 1.5, drag: 0.3, trailEchoes: 4, trailInterval: 0.01, pointSize: 2.2, flicker: 0 },
+  crossette: { burnTime: 2.5, drag: 0.3, trailEchoes: 4, trailInterval: 0.01, pointSize: 2.2, flicker: 0 },
   // Dahlia - fewer, larger, bolder stars
   dahlia: { burnTime: 2.0, drag: 0.25, trailEchoes: 4, trailInterval: 0.01, pointSize: 3.5, flicker: 0 },
+  // 蜂 (Hachi) - tiny fast buzzing segments
+  hachi: { burnTime: 0.15, drag: 0.05, trailEchoes: 1, trailInterval: 0.003, pointSize: 1.4, flicker: 0 },
+  // 飛遊星 (Tobiyusei) - long dramatic zigzag with visible trails
+  tobiyusei: { burnTime: 0.6, drag: 0.1, trailEchoes: 5, trailInterval: 0.01, pointSize: 2.5, flicker: 0 },
+  // 点滅 (Tenmetu) - strobe blinking with trails
+  tenmetu: { burnTime: 2.0, drag: 0.3, trailEchoes: 3, trailInterval: 0.01, pointSize: 3.0, flicker: -1.0 },
 } as const satisfies Record<string, StarType>;
 
 // --- Shell type: defines internal structure ---
@@ -92,11 +98,16 @@ export type ShellTypeName =
   | 'crossette'    // クロセット - splitting stars
   | 'palm'         // 椰子 - few large drooping arms + rising tail
   | 'dahlia'       // ダリア - fewer, larger stars
-  | 'multibreak';  // 多段 - sequential bursts
+  | 'multibreak'   // 多段 - sequential bursts
+  | 'hachi'        // 蜂 - spinning spiral stars
+  | 'tobiyusei'    // 飛遊星 - zigzag irregular stars
+  | 'katamono'     // 型物 - shaped (heart, star, smiley)
+  | 'tenmetu'      // 点滅 - strobe blinking stars
+  | 'kowari';      // 小割 - small uniform bursts
 
 interface ShellTypeConfig {
   // Star arrangement
-  arrangement: 'spherical' | 'concentric' | 'subshells';
+  arrangement: 'spherical' | 'concentric' | 'subshells' | 'spiral' | 'zigzag' | 'shape';
   starType: keyof typeof STAR_TYPES;
   // For concentric: layer definitions
   layers?: Array<{
@@ -116,6 +127,10 @@ interface ShellTypeConfig {
   risingTail?: boolean;
   // Star count multiplier (vs base count for shell size)
   starCountMult?: number;
+  // For shape (katamono)
+  shapeTypes?: Array<'heart' | 'ring' | 'star' | 'smiley'>;
+  // For kowari: all sub-shells same color
+  uniformSubColor?: boolean;
   // Default colors
   defaultColors: Array<{ outer: string; inner?: string }>;
 }
@@ -150,19 +165,21 @@ const SHELL_TYPES: Record<ShellTypeName, ShellTypeConfig> = {
   },
   nishikiKamuro: {
     arrangement: 'spherical',
-    starType: 'kamuro',
+    starType: 'nishiki',
+    starCountMult: 1.3,
     defaultColors: [{ outer: 'gold', inner: 'gold' }],
   },
   ginKamuro: {
     arrangement: 'spherical',
     starType: 'kamuro',
-    defaultColors: [{ outer: 'silver', inner: 'silver' }],
+    starCountMult: 0.7,
+    defaultColors: [{ outer: 'silver', inner: 'white' }],
   },
   shiniri: {
     arrangement: 'concentric',
     starType: 'kiku',
     layers: [
-      { starType: 'botan', starCountRatio: 0.3, velocityRatio: 0.4, colorIndex: 1 },
+      { starType: 'kiku', starCountRatio: 0.5, velocityRatio: 0.45, colorIndex: 1 },
       { starType: 'kiku', starCountRatio: 1.0, velocityRatio: 1.0, colorIndex: 0 },
     ],
     defaultColors: [
@@ -174,8 +191,8 @@ const SHELL_TYPES: Record<ShellTypeName, ShellTypeConfig> = {
     arrangement: 'concentric',
     starType: 'kiku',
     layers: [
-      { starType: 'botan', starCountRatio: 0.15, velocityRatio: 0.25, colorIndex: 2 },
-      { starType: 'botan', starCountRatio: 0.25, velocityRatio: 0.5, colorIndex: 1 },
+      { starType: 'kiku', starCountRatio: 0.3, velocityRatio: 0.25, colorIndex: 2 },
+      { starType: 'kiku', starCountRatio: 0.5, velocityRatio: 0.55, colorIndex: 1 },
       { starType: 'kiku', starCountRatio: 1.0, velocityRatio: 1.0, colorIndex: 0 },
     ],
     defaultColors: [
@@ -195,7 +212,7 @@ const SHELL_TYPES: Record<ShellTypeName, ShellTypeConfig> = {
   crossette: {
     arrangement: 'spherical',
     starType: 'crossette',
-    splitDelay: 1.5,
+    splitDelay: 0.8,
     splitCount: 4,
     defaultColors: [
       { outer: 'gold' }, { outer: 'silver' }, { outer: 'red' }, { outer: 'green' },
@@ -220,8 +237,43 @@ const SHELL_TYPES: Record<ShellTypeName, ShellTypeConfig> = {
   multibreak: {
     arrangement: 'spherical',
     starType: 'kiku',
-    breakCount: 2,
-    defaultColors: [{ outer: 'red', inner: 'green' }, { outer: 'blue', inner: 'gold' }],
+    breakCount: 3,
+    defaultColors: [{ outer: 'red', inner: 'green' }, { outer: 'blue', inner: 'gold' }, { outer: 'purple', inner: 'silver' }],
+  },
+  hachi: {
+    arrangement: 'spiral',
+    starType: 'hachi',
+    starCountMult: 0.15,
+    defaultColors: [{ outer: 'gold' }, { outer: 'silver' }, { outer: 'red' }],
+  },
+  tobiyusei: {
+    arrangement: 'zigzag',
+    starType: 'tobiyusei',
+    starCountMult: 0.3,
+    defaultColors: [{ outer: 'gold' }, { outer: 'silver' }, { outer: 'red' }, { outer: 'green' }],
+  },
+  katamono: {
+    arrangement: 'shape',
+    starType: 'botan',
+    shapeTypes: ['heart', 'ring', 'star', 'smiley'],
+    starCountMult: 1.5,
+    defaultColors: [{ outer: 'red' }, { outer: 'gold' }, { outer: 'blue' }, { outer: 'green' }],
+  },
+  tenmetu: {
+    arrangement: 'spherical',
+    starType: 'tenmetu',
+    defaultColors: [
+      { outer: 'red' }, { outer: 'blue' }, { outer: 'green' },
+      { outer: 'white' }, { outer: 'gold' },
+    ],
+  },
+  kowari: {
+    arrangement: 'subshells',
+    starType: 'botan',
+    subShellCount: 15,
+    starCountMult: 0.12,
+    uniformSubColor: true,
+    defaultColors: [{ outer: 'red' }, { outer: 'blue' }, { outer: 'green' }, { outer: 'gold' }],
   },
 };
 
@@ -453,6 +505,153 @@ function normalize(v: number[]) {
   if (m > 0) { v[0] /= m; v[1] /= m; v[2] /= m; }
 }
 
+// --- Rotation helper ---
+function rotateAroundAxis(v: number[], axis: number[], angle: number): [number, number, number] {
+  const c = Math.cos(angle), s = Math.sin(angle);
+  const [x, y, z] = v;
+  const [ax, ay, az] = axis;
+  const dot = x * ax + y * ay + z * az;
+  return [
+    x * c + (ay * z - az * y) * s + ax * dot * (1 - c),
+    y * c + (az * x - ax * z) * s + ay * dot * (1 - c),
+    z * c + (ax * y - ay * x) * s + az * dot * (1 - c),
+  ];
+}
+
+// --- Shape generators for katamono ---
+function heartPoint(): [number, number, number] {
+  const t = Math.random() * Math.PI * 2;
+  const x = 16 * Math.sin(t) ** 3;
+  const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+  return [x / 17, y / 17, (Math.random() - 0.5) * 0.06];
+}
+
+function ringPoint(): [number, number, number] {
+  const t = Math.random() * Math.PI * 2;
+  return [Math.cos(t), Math.sin(t), (Math.random() - 0.5) * 0.06];
+}
+
+function starShapePoint(): [number, number, number] {
+  const n = 5;
+  const seg = Math.floor(Math.random() * n * 2);
+  const lerp = Math.random();
+  const a1 = (seg / (n * 2)) * Math.PI * 2;
+  const a2 = ((seg + 1) / (n * 2)) * Math.PI * 2;
+  const r1 = seg % 2 === 0 ? 1.0 : 0.4;
+  const r2 = (seg + 1) % 2 === 0 ? 1.0 : 0.4;
+  const a = a1 + (a2 - a1) * lerp;
+  const r = r1 + (r2 - r1) * lerp;
+  return [Math.cos(a) * r, Math.sin(a) * r, (Math.random() - 0.5) * 0.06];
+}
+
+function smileyPoint(): [number, number, number] {
+  const section = Math.random();
+  if (section < 0.4) {
+    // Face outline
+    const t = Math.random() * Math.PI * 2;
+    return [Math.cos(t), Math.sin(t), (Math.random() - 0.5) * 0.06];
+  } else if (section < 0.55) {
+    // Left eye
+    const t = Math.random() * Math.PI * 2;
+    return [-0.35 + Math.cos(t) * 0.12, 0.3 + Math.sin(t) * 0.12, (Math.random() - 0.5) * 0.06];
+  } else if (section < 0.7) {
+    // Right eye
+    const t = Math.random() * Math.PI * 2;
+    return [0.35 + Math.cos(t) * 0.12, 0.3 + Math.sin(t) * 0.12, (Math.random() - 0.5) * 0.06];
+  } else {
+    // Smile (upward arc)
+    const t = Math.random() * Math.PI;
+    return [Math.cos(t) * 0.5, -0.4 + Math.sin(t) * 0.2, (Math.random() - 0.5) * 0.06];
+  }
+}
+
+const SHAPE_FUNCS: Record<string, () => [number, number, number]> = {
+  heart: heartPoint, ring: ringPoint, star: starShapePoint, smiley: smileyPoint,
+};
+
+// --- Buzzing burst (hachi) ---
+// Stars fly erratically like bees — fast, frequent random direction changes
+function emitBuzzingBurst(
+  b: ParticleBuilder, star: StarType,
+  cx: number, cy: number, cz: number,
+  burstTime: number, ejectSpeed: number, count: number,
+  c1: FireworkColor, c2: FireworkColor,
+) {
+  const segments = 20;
+  const segDur = 0.1; // short segments = fast direction changes
+
+  for (let i = 0; i < count; i++) {
+    const [dx, dy, dz] = randomOnSphere();
+    const speed = ejectSpeed * (0.8 + Math.random() * 0.6);
+    let vel: [number, number, number] = [dx * speed, dy * speed, dz * speed];
+    let pos: [number, number, number] = [cx, cy, cz];
+    let birthT = burstTime;
+
+    for (let s = 0; s < segments; s++) {
+      b.addWithTrail(pos[0], pos[1], pos[2], vel[0], vel[1], vel[2],
+        birthT, segDur * 1.3, star.drag, c1, c2, star.pointSize, star);
+      pos = posAtTime(pos, vel, star.drag, segDur);
+      birthT += segDur;
+      // Frequent small-to-medium deflections (buzzing)
+      const deflect = 0.3 + Math.random() * 0.8;
+      const rAxis = randomOnSphere();
+      vel = rotateAroundAxis(vel as unknown as number[], rAxis, deflect) as [number, number, number];
+    }
+  }
+}
+
+// --- Zigzag burst (tobiyusei) ---
+// Stars fly in dramatic zigzag — long straight segments with sharp turns
+function emitZigzagBurst(
+  b: ParticleBuilder, star: StarType,
+  cx: number, cy: number, cz: number,
+  burstTime: number, ejectSpeed: number, count: number,
+  c1: FireworkColor, c2: FireworkColor,
+) {
+  const segments = 4;
+  const segDur = 0.5; // long segments → visible straight lines
+
+  for (let i = 0; i < count; i++) {
+    const [dx, dy, dz] = randomOnSphere();
+    const speed = ejectSpeed * (0.5 + Math.random() * 0.3);
+    let vel: [number, number, number] = [dx * speed, dy * speed, dz * speed];
+    let pos: [number, number, number] = [cx, cy, cz];
+    let birthT = burstTime;
+
+    for (let s = 0; s < segments; s++) {
+      b.addWithTrail(pos[0], pos[1], pos[2], vel[0], vel[1], vel[2],
+        birthT, segDur * 1.1, star.drag, c1, c2, star.pointSize, star);
+      pos = posAtTime(pos, vel, star.drag, segDur);
+      birthT += segDur;
+      // Sharp ~90° turn
+      const deflectAngle = 1.2 + Math.random() * 0.8;
+      const rAxis = randomOnSphere();
+      vel = rotateAroundAxis(vel as unknown as number[], rAxis, deflectAngle) as [number, number, number];
+    }
+  }
+}
+
+// --- Shape burst (katamono) ---
+function emitShapeBurst(
+  b: ParticleBuilder, star: StarType,
+  cx: number, cy: number, cz: number,
+  burstTime: number, ejectSpeed: number, count: number,
+  c1: FireworkColor, c2: FireworkColor,
+  shapeType: string,
+) {
+  const shapeFn = SHAPE_FUNCS[shapeType] || heartPoint;
+  for (let i = 0; i < count; i++) {
+    const [sx, sy, sz] = shapeFn();
+    const sv = 0.9 + Math.random() * 0.2;
+    const lv = 0.8 + Math.random() * 0.4;
+    // Shape direction → velocity (preserves shape as it expands)
+    b.addWithTrail(cx, cy, cz,
+      sx * ejectSpeed * sv, sy * ejectSpeed * sv, sz * ejectSpeed * sv,
+      burstTime, star.burnTime * lv, star.drag,
+      c1, c2, star.pointSize, star);
+  }
+}
+
 // --- Main generator ---
 
 export function generateFirework(
@@ -496,6 +695,12 @@ export function generateFirework(
     const subCount = type.subShellCount || 8;
     const subStarCount = Math.max(15, baseCount);
     maxParticles += subCount * subStarCount * trailMult;
+  } else if (type.arrangement === 'spiral') {
+    maxParticles += baseCount * 20 * trailMult; // 20 segments per star
+  } else if (type.arrangement === 'zigzag') {
+    maxParticles += baseCount * 5 * trailMult; // 5 segments per star
+  } else if (type.arrangement === 'shape') {
+    maxParticles += baseCount * trailMult;
   } else {
     maxParticles += baseCount * trailMult;
     if (type.splitCount) maxParticles += baseCount * type.splitCount * trailMult;
@@ -568,11 +773,12 @@ export function generateFirework(
         burstTime + layerDelay, vel, count, lc1, lc2);
     }
   } else if (type.arrangement === 'subshells') {
-    // 千輪 (Senrin) - sub-shells scatter then burst
+    // 千輪 / 小割 - sub-shells scatter then burst
     const subCount = type.subShellCount || 8;
     const subStarCount = Math.max(15, baseCount);
     const scatterSpeed = shell.ejectVelocity * 0.3;
-    const subDelay = 0.3 + Math.random() * 0.2; // sub-shells burst after short delay
+    const subDelay = 0.3 + Math.random() * 0.2;
+    const uniformColor = type.uniformSubColor ? c1 : null;
 
     for (let s = 0; s < subCount; s++) {
       const [dx, dy, dz] = randomOnSphere();
@@ -580,18 +786,29 @@ export function generateFirework(
         [launchX, burstY, launchZ],
         [dx * scatterSpeed, dy * scatterSpeed, dz * scatterSpeed],
         0.2, subDelay);
-      // Each sub-shell picks a random color
-      const subColor = COLORS[Math.floor(Math.random() * COLORS.length)];
+      const subColor = uniformColor || COLORS[Math.floor(Math.random() * COLORS.length)];
       const subStar = STAR_TYPES.botan;
       emitSphericalBurst(b, subStar, subPos[0], subPos[1], subPos[2],
         burstTime + subDelay, shell.ejectVelocity * 0.5, subStarCount,
         subColor, subColor);
     }
+  } else if (type.arrangement === 'spiral') {
+    emitBuzzingBurst(b, star, launchX, burstY, launchZ,
+      burstTime, shell.ejectVelocity, baseCount, c1, c2);
+  } else if (type.arrangement === 'zigzag') {
+    emitZigzagBurst(b, star, launchX, burstY, launchZ,
+      burstTime, shell.ejectVelocity, baseCount, c1, c2);
+  } else if (type.arrangement === 'shape') {
+    const shapes = type.shapeTypes || ['heart'];
+    const shape = shapes[Math.floor(Math.random() * shapes.length)];
+    emitShapeBurst(b, star, launchX, burstY, launchZ,
+      burstTime, shell.ejectVelocity, baseCount, c1, c2, shape);
   }
 
-  // 3. Multi-break: additional breaks
-  if (type.breakCount && type.breakCount > 1) {
-    for (let br = 1; br < type.breakCount; br++) {
+  // 3. Multi-break: additional breaks (randomize count)
+  const actualBreaks = type.breakCount ? (2 + Math.floor(Math.random() * (type.breakCount - 1))) : 0;
+  if (actualBreaks > 1) {
+    for (let br = 1; br < actualBreaks; br++) {
       const breakDelay = shell.fuseTime * 0.4 * br;
       const breakTime = burstTime + breakDelay;
       const breakY = burstY + 30 * br + Math.random() * 20;
