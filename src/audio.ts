@@ -12,9 +12,8 @@ let ctx: AudioContext | null = null;
 let masterGain: GainNode;
 let compressor: DynamicsCompressorNode;
 let noiseBuffer: AudioBuffer;
-let pinkBuffer: AudioBuffer;
 let crackleBuffer: AudioBuffer;
-let distortionCurve: Float32Array;
+let distortionCurve: Float32Array<ArrayBuffer>;
 let activeVoices = 0;
 
 // --- Init ---
@@ -36,7 +35,6 @@ export function initAudio() {
   masterGain.connect(compressor);
 
   noiseBuffer = makeNoise(ctx, 2);
-  pinkBuffer = makePinkNoise(ctx, 4);
   crackleBuffer = makeCrackle(ctx, 3);
   distortionCurve = makeDistortionCurve(8);
 }
@@ -57,25 +55,6 @@ function makeNoise(c: AudioContext, dur: number): AudioBuffer {
   return buf;
 }
 
-function makePinkNoise(c: AudioContext, dur: number): AudioBuffer {
-  const len = c.sampleRate * dur;
-  const buf = c.createBuffer(1, len, c.sampleRate);
-  const d = buf.getChannelData(0);
-  // Paul Kellet's refined pink noise generator
-  let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
-  for (let i = 0; i < len; i++) {
-    const w = Math.random() * 2 - 1;
-    b0 = 0.99886 * b0 + w * 0.0555179;
-    b1 = 0.99332 * b1 + w * 0.0750759;
-    b2 = 0.96900 * b2 + w * 0.1538520;
-    b3 = 0.86650 * b3 + w * 0.3104856;
-    b4 = 0.55000 * b4 + w * 0.5329522;
-    b5 = -0.7616 * b5 - w * 0.0168980;
-    d[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362) * 0.11;
-    b6 = w * 0.115926;
-  }
-  return buf;
-}
 
 function makeCrackle(c: AudioContext, dur: number): AudioBuffer {
   const len = c.sampleRate * dur;
@@ -96,7 +75,7 @@ function makeCrackle(c: AudioContext, dur: number): AudioBuffer {
   return buf;
 }
 
-function makeDistortionCurve(amount: number): Float32Array {
+function makeDistortionCurve(amount: number): Float32Array<ArrayBuffer> {
   const n = 256;
   const curve = new Float32Array(n);
   for (let i = 0; i < n; i++) {
