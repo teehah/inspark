@@ -8,6 +8,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ParticleSystem } from './particleSystem';
 import { generateFirework, ALL_SHELL_TYPES, SHELL_SIZES as SHELL_SIZE_DATA } from './firework';
 import type { ShellTypeName } from './firework';
+import { initAudio, playLaunch, playBurst, updateListener } from './audio';
 
 // --- Scene Setup ---
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -81,6 +82,7 @@ interface ActiveBurst {
   endTime: number;
   shellType: ShellTypeName;
   size: number;
+  soundPlayed: boolean;
 }
 
 const activeBursts: ActiveBurst[] = [];
@@ -103,7 +105,7 @@ const SPECTACLE: Partial<Record<ShellTypeName, number>> = {
 };
 
 function trackBurst(x: number, y: number, z: number, launchTime: number, burstTime: number, duration: number, shellType: ShellTypeName, size: number) {
-  activeBursts.push({ x, y, z, launchTime, burstTime, endTime: burstTime + duration, shellType, size });
+  activeBursts.push({ x, y, z, launchTime, burstTime, endTime: burstTime + duration, shellType, size, soundPlayed: false });
 }
 
 function launchRandomFirework() {
@@ -117,6 +119,7 @@ function launchRandomFirework() {
 
   const shell = SHELL_SIZE_DATA[size] || SHELL_SIZE_DATA[6];
   trackBurst(x, shell.height, z, simTime, simTime + shell.fuseTime, 4, shellType, size);
+  playLaunch(x, z, size, shell.fuseTime, camera.position.x, camera.position.y, camera.position.z);
 }
 
 // --- Flying Camera ---
@@ -270,6 +273,7 @@ function updateFlyingCamera(dt: number) {
 const flyBtn = document.getElementById('fly-btn')!;
 flyBtn.addEventListener('click', (e) => {
   e.stopPropagation();
+  initAudio();
   if (flyState === 'idle') {
     startTakeoff();
   } else if (flyState === 'flying') {
@@ -304,6 +308,14 @@ function animate() {
 
   particles.update(simTime);
 
+  // Trigger burst sounds when burstTime is reached
+  for (const b of activeBursts) {
+    if (!b.soundPlayed && simTime >= b.burstTime) {
+      b.soundPlayed = true;
+      playBurst(b.x, b.y, b.z, b.size, b.shellType, camera.position.x, camera.position.y, camera.position.z);
+    }
+  }
+
   switch (flyState) {
     case 'idle':
       controls.update();
@@ -318,6 +330,13 @@ function animate() {
       if (updateTransition(dt)) enterIdle();
       break;
   }
+
+  // Sync audio listener to camera
+  camera.getWorldDirection(_camForward);
+  updateListener(
+    camera.position.x, camera.position.y, camera.position.z,
+    _camForward.x, _camForward.y, _camForward.z,
+  );
 
   composer.render();
   updateMarkers();
@@ -426,6 +445,7 @@ function toggleDial(open?: boolean) {
 
 launchBtn.addEventListener('click', (e) => {
   e.stopPropagation();
+  initAudio();
   toggleDial();
 });
 
@@ -484,6 +504,7 @@ function launchSelected() {
   const data = generateFirework(type, size, 0, 0, simTime);
   particles.addFirework(data);
   trackBurst(0, shell.height, 0, simTime, simTime + shell.fuseTime, 4, type, size);
+  playLaunch(0, 0, size, shell.fuseTime, camera.position.x, camera.position.y, camera.position.z);
   const burst = activeBursts[activeBursts.length - 1];
   addMarker(SHELL_LABELS[type], burst);
 
@@ -560,6 +581,15 @@ jogDial.addEventListener('scrollend', () => {
 
 // --- Particle Counter ---
 const counterEl = document.getElementById('particle-counter')!;
+
+// --- Init audio on first user gesture ---
+function initOnGesture() {
+  initAudio();
+  document.removeEventListener('click', initOnGesture);
+  document.removeEventListener('touchstart', initOnGesture);
+}
+document.addEventListener('click', initOnGesture);
+document.addEventListener('touchstart', initOnGesture);
 
 // --- Click canvas to launch random ---
 canvas.addEventListener('click', () => {
